@@ -1,45 +1,31 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
-import { PrismaClient } from '@/generated/prisma-node/client';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@/generated/prisma/client';
+import { createDemoRequestRepository } from '@/lib/demo-request/prisma-repository';
 
-describe('DemoRequest SQLite repository', () => {
+const testDatabaseUrl = process.env.TEST_DATABASE_URL;
+const describeWithPostgres = testDatabaseUrl ? describe : describe.skip;
+
+describeWithPostgres('DemoRequest PostgreSQL repository', () => {
   let prisma: PrismaClient;
 
-  beforeEach(async () => {
+  beforeAll(() => {
     prisma = new PrismaClient({
-      adapter: new PrismaBetterSqlite3({ url: ':memory:' }),
+      adapter: new PrismaPg({ connectionString: testDatabaseUrl! }),
     });
-    await prisma.$executeRawUnsafe(`
-      CREATE TABLE "DemoRequest" (
-        "id" TEXT NOT NULL PRIMARY KEY,
-        "name" TEXT NOT NULL,
-        "email" TEXT NOT NULL,
-        "phone" TEXT NOT NULL,
-        "status" TEXT NOT NULL DEFAULT 'PENDING',
-        "source" TEXT,
-        "ipHash" TEXT,
-        "userAgent" TEXT,
-        "notificationStatus" TEXT NOT NULL DEFAULT 'PENDING',
-        "notificationLastError" TEXT,
-        "emailSentAt" DATETIME,
-        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" DATETIME NOT NULL
-      )
-    `);
   });
 
-  afterEach(async () => prisma.$disconnect());
+  beforeEach(async () => prisma.demoRequest.deleteMany());
+
+  afterAll(async () => prisma.$disconnect());
 
   it('saves a valid request as PENDING', async () => {
-    const saved = await prisma.demoRequest.create({
-      data: {
-        name: 'Anna Nowak',
-        email: 'anna@example.com',
-        phone: '+48 501 502 503',
-        source: 'test',
-        status: 'PENDING',
-        notificationStatus: 'PENDING',
-      },
+    const repository = createDemoRequestRepository(prisma);
+    const saved = await repository.create({
+      name: 'Anna Nowak',
+      email: 'anna@example.com',
+      phone: '+48 501 502 503',
+      source: 'test',
     });
 
     expect(saved.id).toBeTruthy();

@@ -17,7 +17,8 @@ export default defineConfig({
       NEXT_PUBLIC_SITE_URL: 'https://www.pmbp.pl',
       NEXT_PUBLIC_PMBP_GITHUB_URL: 'https://github.com/example/pmbp',
       NEXT_PUBLIC_PMBP_DOWNLOAD_URL: '',
-      DATABASE_URL: 'file:./data/e2e.sqlite',
+      DATABASE_URL:
+        process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL ?? '',
     },
   },
 });

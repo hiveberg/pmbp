@@ -1,33 +1,39 @@
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
-  runtime  = "cloudflare"
-}
-
-generator clientNode {
-  provider = "prisma-client"
-  output   = "../generated/prisma-node"
   runtime  = "nodejs"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+}
+
+enum DemoRequestStatus {
+  PENDING
+  PROCESSED
+  REJECTED
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
 }
 
 model DemoRequest {
-  id                    String   @id @default(cuid())
+  id                    String             @id @default(cuid())
   name                  String
   email                 String
   phone                 String
-  status                String   @default("PENDING")
+  status                DemoRequestStatus  @default(PENDING)
   source                String?
   ipHash                String?
   userAgent             String?
-  notificationStatus    String   @default("PENDING")
+  notificationStatus    NotificationStatus @default(PENDING)
   notificationLastError String?
   emailSentAt           DateTime?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
 
   @@index([email, createdAt], map: "idx_demo_requests_email_created_at")
   @@index([ipHash, createdAt], map: "idx_demo_requests_ip_hash_created_at")

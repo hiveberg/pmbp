@@ -1,7 +1,6 @@
-import { env } from 'cloudflare:workers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createPrismaClient } from '@/lib/db/prisma';
+import { getPrismaClient } from '@/lib/db/prisma';
 import { createDemoRequestRepository } from '@/lib/demo-request/prisma-repository';
 import {
   DemoRequestRateLimitError,
@@ -16,11 +15,6 @@ import {
 
 const GENERIC_ERROR =
   'Nie udało się wysłać zgłoszenia. Spróbuj ponownie za chwilę.';
-
-function value(name: keyof Cloudflare.Env) {
-  const runtimeValue = env[name];
-  return typeof runtimeValue === 'string' ? runtimeValue : process.env[name];
-}
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -57,13 +51,12 @@ export async function POST(request: Request) {
   }
 
   const normalized = normalizeDemoRequest(validation.data);
-  const prisma = createPrismaClient(env.DB);
-  const repository = createDemoRequestRepository(prisma);
+  const repository = createDemoRequestRepository(getPrismaClient());
 
   try {
     const ipHash = await hashClientIp(
       getClientIp(request.headers),
-      value('RATE_LIMIT_SALT') ?? '',
+      process.env.RATE_LIMIT_SALT ?? '',
     );
     const saved = await submitDemoRequest(
       {
@@ -76,11 +69,11 @@ export async function POST(request: Request) {
       {
         repository,
         sendNotification: createDemoRequestNotifier({
-          RESEND_API_KEY: value('RESEND_API_KEY'),
-          EMAIL_FROM: value('EMAIL_FROM'),
-          DEMO_NOTIFICATION_EMAIL_1: value('DEMO_NOTIFICATION_EMAIL_1'),
-          DEMO_NOTIFICATION_EMAIL_2: value('DEMO_NOTIFICATION_EMAIL_2'),
-          DEMO_NOTIFICATION_EMAILS: value('DEMO_NOTIFICATION_EMAILS'),
+          RESEND_API_KEY: process.env.RESEND_API_KEY,
+          EMAIL_FROM: process.env.EMAIL_FROM,
+          DEMO_NOTIFICATION_EMAIL_1: process.env.DEMO_NOTIFICATION_EMAIL_1,
+          DEMO_NOTIFICATION_EMAIL_2: process.env.DEMO_NOTIFICATION_EMAIL_2,
+          DEMO_NOTIFICATION_EMAILS: process.env.DEMO_NOTIFICATION_EMAILS,
         }),
         logger: console,
       },
@@ -103,7 +96,5 @@ export async function POST(request: Request) {
       { ok: false, message: GENERIC_ERROR },
       { status: 500 },
     );
-  } finally {
-    await prisma.$disconnect().catch(() => undefined);
   }
 }

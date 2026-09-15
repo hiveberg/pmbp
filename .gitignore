@@ -34,12 +34,6 @@ yarn-error.log*
 .env*
 !.env.example
 
-# local SQLite databases
-/data/
-*.sqlite
-*.sqlite-shm
-*.sqlite-wal
-
 # deployment and generated files
 .vercel
 next-env.d.ts
