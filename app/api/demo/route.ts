@@ -16,6 +16,19 @@ import {
 const GENERIC_ERROR =
   'Nie udało się wysłać zgłoszenia. Spróbuj ponownie za chwilę.';
 
+function prismaErrorCode(error: unknown) {
+  if (
+    error instanceof Error &&
+    'code' in error &&
+    typeof error.code === 'string' &&
+    /^P\d{4}$/.test(error.code)
+  ) {
+    return error.code;
+  }
+
+  return undefined;
+}
+
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -91,6 +104,7 @@ export async function POST(request: Request) {
     console.error('[demo-request]', {
       category: 'DATABASE_OR_REQUEST',
       errorName: error instanceof Error ? error.name : 'UnknownError',
+      prismaCode: prismaErrorCode(error),
     });
     return NextResponse.json(
       { ok: false, message: GENERIC_ERROR },

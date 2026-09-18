@@ -56,6 +56,7 @@ PostgreSQL w `prisma/migrations`.
 ```bash
 npm run db:generate
 npm run db:migrate
+npm run db:status
 npm run db:studio
 ```
 
@@ -84,5 +85,9 @@ jako krok pre-deploy. W projekcie Railway:
 3. ustaw pozostałe zmienne z `.env.example`, w tym odbiorców i konfigurację
    Resend;
 4. wdrożenie zastosuje migracje przed przełączeniem ruchu na nową wersję.
+
+Skrypt `npm run start` wykonuje dodatkowo idempotentne `prisma migrate deploy`
+przed uruchomieniem Next.js. Jest to zabezpieczenie na wypadek pominięcia kroku
+pre-deploy przez konfigurację usługi Railway.
 
 Uzupełnij także oznaczone dane administratora w polityce prywatności.

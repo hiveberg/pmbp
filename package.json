@@ -9,7 +9,7 @@
     "postinstall": "prisma generate",
     "dev": "next dev",
     "build": "next build",
-    "start": "next start --hostname 0.0.0.0 --port ${PORT:-3000}",
+    "start": "npm run db:migrate && next start --hostname 0.0.0.0 --port ${PORT:-3000}",
     "lint": "oxlint",
     "typecheck": "tsc --noEmit",
     "format": "oxfmt",
@@ -17,6 +17,7 @@
     "test:e2e": "playwright test",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
+    "db:status": "prisma migrate status",
     "db:studio": "prisma studio",
     "e2e:prepare": "npm run db:migrate && npm run build",
     "e2e:serve": "next start --hostname 127.0.0.1 --port 4173"
